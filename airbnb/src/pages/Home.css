@@ -71,6 +71,10 @@
   width: 160px;
 }
 
+.inputs .sc-gGCDDS {
+  outline: 0px !important;
+}
+
 .vl {
   position: relative;
   top: 15;

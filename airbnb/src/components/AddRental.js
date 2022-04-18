@@ -10,9 +10,6 @@ function AddRental({ account }) {
   const dispatch = useNotification();
 
   const handleSubmit = (data) => {
-    console.log("Submitting");
-    console.log(data);
-
     const values = data.reduce(
       (obj, cur) => ({ ...obj, [`${cur.inputName}`]: cur.inputResult }),
       {}
