@@ -1,3 +1,6 @@
 dist/
 node_modules/
 heroku_auth.txt
+
+.env
+build/
