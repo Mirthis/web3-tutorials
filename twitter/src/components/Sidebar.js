@@ -1,9 +1,14 @@
 import React from "react";
+import { useMoralis } from "react-moralis";
 import "./Sidebar.css";
 import { Icon } from "web3uikit";
+import { defaultImgs } from "../defaultimgs";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
+  const { Moralis } = useMoralis();
+  const user = Moralis.User.current();
+
   return (
     <>
       <div className="siderContent">
@@ -31,6 +36,21 @@ const Sidebar = () => {
               Settings
             </div>
           </Link>
+        </div>
+
+        <div className="details">
+          <img
+            className="profilePic"
+            src={user.attributes.pfp || defaultImgs[0]}
+            alt="avatar"
+          />
+          <div className="profile">
+            <div className="who">{user.attributes.username}</div>
+            <div className="accWhen">{`${user.attributes.ethAddress.slice(
+              0,
+              4
+            )}...${user.attributes.ethAddress.slice(30)}`}</div>
+          </div>
         </div>
       </div>
     </>

@@ -1,117 +1,81 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useMoralis } from "react-moralis";
 import "./TweetInFeed.css";
-import golf from "../images/golf.png";
-import canoe from "../images/canoe.png";
 import { defaultImgs } from "../defaultimgs";
 import { Icon } from "web3uikit";
 
-const TweetInFeed = () => {
+const TweetInFeed = ({ profile }) => {
+  const [tweetArr, setTweetArr] = useState();
+  const { Moralis, account } = useMoralis();
+
+  useEffect(() => {
+    const getTweets = async () => {
+      try {
+        const Tweets = Moralis.Object.extend("Tweets");
+        const query = new Moralis.Query(Tweets);
+        if (profile) {
+          query.equalTo("tweeterAcc", account);
+        }
+        const results = await query.find();
+        setTweetArr(results);
+        console.log(results);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    getTweets();
+  }, [profile, Moralis.Object, Moralis.Query, account]);
+
   return (
     <>
-      <div className="feedTweet">
-        <img src={defaultImgs[0]} alt="avatar" className="profilePic" />
-        <div className="completeTweet">
-          <div className="who">
-            Juhizz
-            <div className="accWhen">1x32424 - 1h</div>
-          </div>
-          <div className="tweetContent">
-            dasd asd asdas dd
-            <img src={golf} className="tweetImg" alt="tweet" />
-          </div>
-          <div className="interactions">
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="messageCircle" />
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="star" />
-              15
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="matic" />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="feedTweet">
-        <img src={defaultImgs[0]} className="profilePic" alt="tweet"></img>
-        <div className="completeTweet">
-          <div className="who">
-            Juhizzz
-            <div className="accWhen">0x42..314 · 1h</div>
-          </div>
-          <div className="tweetContent">
-            is simply dummy text of the printing and typesetting industry. Lorem
-            Ipsum has been the industry's standard dummy text ever since the
-            1500s, when an unknown printer took a galley of type and scrambled
-            it to make a type specimen book. It has survived not only five
-            centuries, but also the leap into electronic typesetting, remaining
-            essentially un
-          </div>
-          <div className="interactions">
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="messageCircle" />
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="star" />
-              12
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="matic" />
+      {tweetArr
+        ?.map((tweet, i) => (
+          <div key={i} className="feedTweet">
+            <img
+              src={tweet.attributes.tweeterPfp || defaultImgs[0]}
+              alt="avatar"
+              className="profilePic"
+            />
+            <div className="completeTweet">
+              <div className="who">
+                {tweet.tweeterUserName}
+                <div className="accWhen">{`${tweet.attributes.tweeterAcc.slice(
+                  0,
+                  4
+                )}...${tweet.attributes.tweeterAcc.slice(30)} -
+              ${tweet.attributes.createdAt.toLocaleString("en-us", {
+                month: "short",
+              })}
+              ${tweet.attributes.createdAt.toLocaleString("en-us", {
+                day: "numeric",
+              })}`}</div>
+              </div>
+              <div className="tweetContent">
+                {tweet.attributes.tweetTxt}
+                {tweet.attributes.tweetImg && (
+                  <img
+                    src={tweet.attributes.tweetImg}
+                    className="tweetImg"
+                    alt="tweet"
+                  />
+                )}
+              </div>
+              <div className="interactions">
+                <div className="interactionNums">
+                  <Icon fill="#3f3f3f" size={20} svg="messageCircle" />
+                </div>
+                <div className="interactionNums">
+                  <Icon fill="#3f3f3f" size={20} svg="star" />
+                  15
+                </div>
+                <div className="interactionNums">
+                  <Icon fill="#3f3f3f" size={20} svg="matic" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="feedTweet">
-        <img src={defaultImgs[0]} className="profilePic" alt="tweet"></img>
-        <div className="completeTweet">
-          <div className="who">
-            Juhizzz
-            <div className="accWhen">0x42..314 · 1h</div>
-          </div>
-          <div className="tweetContent">
-            Thoughts on the new Coca-Cola banana 🥤🍌 flavor?
-          </div>
-          <div className="interactions">
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="messageCircle" />
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="star" />
-              12
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="matic" />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="feedTweet">
-        <img src={defaultImgs[0]} className="profilePic" alt="tweet"></img>
-        <div className="completeTweet">
-          <div className="who">
-            Juhizzz
-            <div className="accWhen">0x42..314 · 1h</div>
-          </div>
-          <div className="tweetContent">
-            Love spending time on the water 🌊🌅
-            <img src={canoe} className="tweetImg" alt="tweet"></img>
-          </div>
-          <div className="interactions">
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="messageCircle" />
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="star" />
-              12
-            </div>
-            <div className="interactionNums">
-              <Icon fill="#3f3f3f" size={20} svg="matic" />
-            </div>
-          </div>
-        </div>
-      </div>
+        ))
+        .reverse()}
     </>
   );
 };

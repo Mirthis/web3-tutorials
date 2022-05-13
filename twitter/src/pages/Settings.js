@@ -1,18 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Input } from "web3uikit";
 import "./Settings.css";
-import pfp1 from "../images/pfp1.png";
-import pfp2 from "../images/pfp2.png";
-import pfp3 from "../images/pfp3.png";
-import pfp4 from "../images/pfp4.png";
-import pfp5 from "../images/pfp5.png";
 import { defaultImgs } from "../defaultimgs";
+import { useMoralis, useMoralisWeb3Api } from "react-moralis";
 
 const Settings = () => {
-  const pfps = [pfp1, pfp2, pfp3, pfp4, pfp5];
+  const [pfps, setPfps] = useState([]);
   const [selectedPFP, setSelectedPFP] = useState();
   const inputFile = useRef(null);
   const [selectedFile, setSelectedFile] = useState(defaultImgs[1]);
+  const [theFile, setTheFile] = useState();
+  const [username, setUsername] = useState();
+  const [bio, setBio] = useState();
+  const { Moralis, isAuthenticated, account } = useMoralis();
+  const Web3Api = useMoralisWeb3Api();
 
   const onBannerClick = () => {
     inputFile.current.click();
@@ -20,12 +21,61 @@ const Settings = () => {
 
   const changeHandler = (event) => {
     const img = event.target.files[0];
+    setTheFile(img);
     setSelectedFile(URL.createObjectURL(img));
   };
 
-  const saveEdits = () => {
-    //
+  const saveEdits = async () => {
+    const User = Moralis.Object.extend("_User");
+    const query = new Moralis.Query(User);
+    const myDetails = await query.first();
+
+    if (bio) {
+      myDetails.set("bio", bio);
+    }
+
+    if (username) {
+      myDetails.set("username", username);
+    }
+
+    if (theFile) {
+      const data = theFile;
+      const file = new Moralis.File(data.name, data);
+      await file.saveIPFS();
+      myDetails.set("banner", file.ipfs());
+    }
+
+    if (selectedPFP) {
+      myDetails.set("pfp", selectedPFP);
+    }
+
+    await myDetails.save();
+    window.location.reload();
   };
+
+  const resolveLink = (url) => {
+    if (!url || !url.includes("ipfs://")) return url;
+    return url.replace("ipfs://", "https://gateway.ipfs.io/ipfs/");
+  };
+
+  useEffect(() => {
+    const fetcNFTs = async () => {
+      const options = {
+        chain: "mumbai",
+        address: account,
+      };
+
+      console.log(options);
+      const mumbaiNFTs = await Web3Api.account.getNFTs(options);
+      console.log(mumbaiNFTs);
+      const images = mumbaiNFTs.result.map((res) =>
+        resolveLink(JSON.parse(res.metadata)?.image)
+      );
+      setPfps(images);
+    };
+
+    fetcNFTs();
+  }, [isAuthenticated, account, Web3Api.account]);
 
   return (
     <>
@@ -36,12 +86,14 @@ const Settings = () => {
           name="nameChange"
           width="100%"
           labelBgColor="#141d26"
+          onChange={(e) => setUsername(e.target.value)}
         />
         <Input
           label="Bio"
           name="bioChange"
           width="100%"
           labelBgColor="#141d26"
+          onChange={(e) => setBio(e.target.value)}
         />
 
         <div className="pfp">
@@ -70,7 +122,7 @@ const Settings = () => {
               className="banner"
               onClick={onBannerClick}
             />
-            <Input
+            <input
               type="file"
               name="file"
               ref={inputFile}
